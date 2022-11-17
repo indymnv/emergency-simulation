@@ -1,0 +1,8 @@
+[deps]
+Agents = "46ada45e-f475-11e8-01d0-f70cc89e6671"
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+DiscreteEvents = "127e53a7-d08a-4bd9-afb0-daf0d2b65a85"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+InteractiveDynamics = "ec714cd0-5f51-11eb-0b6e-452e7367ff84"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
