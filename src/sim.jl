@@ -1,10 +1,49 @@
 using Agents
 using Random
 
+@agent Area OSMAgent begin
+    emergency::Bool
+    probability::Float64
+
+mutable struct Area <: AbstractAgent
+    id::Int
+    pos::Tuple{Int, Int, Float64}
+    emergency::Bool
+    probability::Float64
+
+function initialise(seed = 1234)
+    map_path = OSM.test_map()
+    properties = Dict(:dt = > 1/60)
+    model = ABM(
+        Area,
+        OpenStreetMapSpace(map_path);
+        properties = properties,
+        rng = Random.MersenneTwister(seed)
+    )
+    for id in 1:100
+        start = random_position(model) # At an intersection
+        probability = rand(model.rng) * 5.0 + 2.0 # Random speed from 2-7kmph
+        emergency = Area(id, start, false, probability)
+        add_agent_pos!(emergency, model)
+        OSM.plan_random_route!(emergency, model; limit = 50) # try 50 times to find a random route
+    end
+    # We'll add patient zero at a specific (longitude, latitude)
+    start = OSM.nearest_road((9.9351811, 51.5328328), model)
+    finish = OSM.nearest_node((9.945125635913511, 51.530876112711745), model)
+
+    probability = rand(model.rng) # Random speed from 2-7kmph
+    emergency = add_agent!(start, model, true, probability)
+    plan_route!(zombie, finish, model)
+    # This function call creates & adds an agent, see `add_agent!`
+    return model
+end
+
+"""
 @agent Zombie OSMAgent begin
     infected::Bool
     speed::Float64
 end
+
 
 mutable struct Zombie <: AbstractAgent
     id::Int
@@ -70,3 +109,5 @@ model = initialise()
 
 abmvideo("outbreak.mp4", model, agent_step!;
 title = "Zombie outbreak", framerate = 15, frames = 200, as, ac)
+"""
+
