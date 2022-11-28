@@ -4,16 +4,18 @@ using Random
 @agent Area OSMAgent begin
     emergency::Bool
     probability::Float64
+end
 
 mutable struct Area <: AbstractAgent
     id::Int
     pos::Tuple{Int, Int, Float64}
     emergency::Bool
     probability::Float64
+end
 
 function initialise(seed = 1234)
     map_path = OSM.test_map()
-    properties = Dict(:dt = > 1/60)
+    properties = Dict(:dt => 1/60)
     model = ABM(
         Area,
         OpenStreetMapSpace(map_path);
