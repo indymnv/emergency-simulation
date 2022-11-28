@@ -35,10 +35,24 @@ function initialise(seed = 1234)
 
     probability = rand(model.rng) # Random speed from 2-7kmph
     emergency = add_agent!(start, model, true, probability)
-    plan_route!(zombie, finish, model)
+    plan_route!(emergency, finish, model)
     # This function call creates & adds an agent, see `add_agent!`
     return model
 end
+
+function agent_step()
+
+end
+
+using InteractiveDynamics
+using CairoMakie
+CairoMakie.activate!() # hide
+ac(agent) = agent.infected ? :green : :black
+as(agent) = agent.infected ? 10 : 8
+model = initialise()
+
+abmvideo("outbreak.mp4", model, agent_step!;
+title = "Zombie outbreak", framerate = 15, frames = 200, as, ac)
 
 """
 @agent Zombie OSMAgent begin
