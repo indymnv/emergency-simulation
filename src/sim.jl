@@ -32,7 +32,6 @@ function initialise(seed = 1234)
     # We'll add patient zero at a specific (longitude, latitude)
     start = OSM.nearest_road((9.9351811, 51.5328328), model)
     finish = OSM.nearest_node((9.945125635913511, 51.530876112711745), model)
-
     probability = rand(model.rng) # Random speed from 2-7kmph
     emergency = add_agent!(start, model, true, probability)
     plan_route!(emergency, finish, model)
@@ -40,15 +39,27 @@ function initialise(seed = 1234)
     return model
 end
 
-function agent_step()
+function agent_step!(agent, model)
+     distance_left = move_along_route!(agent, model, agent.probability * model.dt)
+    if is_stationary(agent, model) && rand(model.rng) < 0.1
+        # When stationary, give the agent a 10% chance of going somewhere else
+        OSM.plan_random_route!(agent, model; limit = 50)
+        # Start on new route, moving the remaining distance
+        move_along_route!(agent, model, distance_left)
+    end
 
+    if agent.emergency
+        # Agents will be infected if they get too close (within 10m) to a zombie.
+        map(i -> model[i].emergency = true, nearby_ids(agent, model, 0.01))
+    end
+    return
 end
 
 using InteractiveDynamics
 using CairoMakie
 CairoMakie.activate!() # hide
-ac(agent) = agent.infected ? :green : :black
-as(agent) = agent.infected ? 10 : 8
+ac(agent) = agent.emergency ? :green : :black
+as(agent) = agent.emergency ? 10 : 8
 model = initialise()
 
 abmvideo("outbreak.mp4", model, agent_step!;
