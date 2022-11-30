@@ -40,13 +40,13 @@ function initialise(seed = 1234)
 end
 
 function agent_step!(agent, model)
-     distance_left = move_along_route!(agent, model, agent.probability * model.dt)
-    if is_stationary(agent, model) && rand(model.rng) < 0.1
+    #distance_left = move_along_route!(agent, model, agent.probability * model.dt)
+    #if is_stationary(agent, model) && rand(model.rng) < 0.1
         # When stationary, give the agent a 10% chance of going somewhere else
-        OSM.plan_random_route!(agent, model; limit = 50)
+        #OSM.plan_random_route!(agent, model; limit = 50)
         # Start on new route, moving the remaining distance
-        move_along_route!(agent, model, distance_left)
-    end
+        #move_along_route!(agent, model, distance_left)
+    #end
 
     if agent.emergency
         # Agents will be infected if they get too close (within 10m) to a zombie.
@@ -62,7 +62,7 @@ ac(agent) = agent.emergency ? :green : :black
 as(agent) = agent.emergency ? 10 : 8
 model = initialise()
 
-abmvideo("outbreak.mp4", model, agent_step!;
+abmvideo("emergency_system.mp4", model, agent_step!;
 title = "Zombie outbreak", framerate = 15, frames = 200, as, ac)
 
 """
