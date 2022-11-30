@@ -1,5 +1,6 @@
 using Agents
 using Random
+using Distributions
 
 @agent Area OSMAgent begin
     emergency::Bool
@@ -24,7 +25,7 @@ function initialise(seed = 1234)
     )
     for id in 1:100
         start = random_position(model) # At an intersection
-        probability = rand(model.rng) * 5.0 + 2.0 # Random speed from 2-7kmph
+        probability = rand(model.rng) # Random probability
         emergency = Area(id, start, false, probability)
         add_agent_pos!(emergency, model)
         OSM.plan_random_route!(emergency, model; limit = 50) # try 50 times to find a random route
@@ -47,7 +48,7 @@ function agent_step!(agent, model)
         # Start on new route, moving the remaining distance
         #move_along_route!(agent, model, distance_left)
     #end
-
+    agent.emergency = rand(Bernoulli(agent.probability))
     if agent.emergency
         # Agents will be infected if they get too close (within 10m) to a zombie.
         map(i -> model[i].emergency = true, nearby_ids(agent, model, 0.01))
@@ -63,7 +64,7 @@ as(agent) = agent.emergency ? 10 : 8
 model = initialise()
 
 abmvideo("emergency_system.mp4", model, agent_step!;
-title = "Zombie outbreak", framerate = 15, frames = 200, as, ac)
+title = "Emergency in a city", framerate = 15, frames = 200, as, ac)
 
 """
 @agent Zombie OSMAgent begin
