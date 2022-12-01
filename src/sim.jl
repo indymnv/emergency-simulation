@@ -15,6 +15,7 @@ mutable struct Area <: AbstractAgent
 end
 
 function initialise(seed = 1234)
+    #Set space
     map_path = OSM.test_map()
     properties = Dict(:dt => 1/60)
     model = ABM(
@@ -23,6 +24,7 @@ function initialise(seed = 1234)
         properties = properties,
         rng = Random.MersenneTwister(seed)
     )
+    #Develop initial states for each node
     for id in 1:100
         start = random_position(model) # At an intersection
         probability = 0.001#rand(1:2) # Random probability
@@ -31,7 +33,7 @@ function initialise(seed = 1234)
         OSM.plan_random_route!(emergency, model; limit = 50) # try 50 times to find a random route
     end
     # We'll add patient zero at a specific (longitude, latitude)
-    start = OSM.nearest_road((9.9351811, 51.5328328), model)
+    start = OSM.nearest_road((9.93000, 51.5328328), model)
     finish = OSM.nearest_node((9.945125635913511, 51.530876112711745), model)
     probability = rand(model.rng) # Random speed from 2-7kmph
     emergency = add_agent!(start, model, true, probability)
