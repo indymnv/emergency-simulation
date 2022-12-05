@@ -2,7 +2,7 @@
 
 julia_version = "1.8.3"
 manifest_format = "2.0"
-project_hash = "e9d8534e9750fe7798ccaa218a0b88b39d059423"
+project_hash = "11cbc271c970556a2fb5b01e338a83bf5371540c"
 
 [[deps.AbstractFFTs]]
 deps = ["ChainRulesCore", "LinearAlgebra"]
@@ -755,6 +755,11 @@ git-tree-sha1 = "a7c3d1da1189a1c2fe843a3bfa04d18d20eb3211"
 uuid = "77ba4419-2d1f-58cd-9bb1-8ffee604a2e3"
 version = "1.0.1"
 
+[[deps.NamedTupleTools]]
+git-tree-sha1 = "17eeb975b00de066fb343aa8d56884f51d4a651c"
+uuid = "d9ec5142-1e00-5aa0-9d6a-321866360f50"
+version = "0.14.1"
+
 [[deps.NearestNeighbors]]
 deps = ["Distances", "StaticArrays"]
 git-tree-sha1 = "440165bf08bc500b8fe4a7be2dc83271a00c0716"
@@ -867,6 +872,18 @@ deps = ["Base64", "CEnum", "ImageCore", "IndirectArrays", "OffsetArrays", "libpn
 git-tree-sha1 = "f809158b27eba0c18c269cf2a2be6ed751d3e81d"
 uuid = "f57f5aa1-a3ce-4bc8-8ab9-96f992907883"
 version = "0.3.17"
+
+[[deps.POMDPLinter]]
+deps = ["Logging"]
+git-tree-sha1 = "cee5817d06f5e1a9054f3e1bbb50cbabae4cd5a5"
+uuid = "f3bd98c0-eb40-45e2-9eb1-f2763262d755"
+version = "0.1.1"
+
+[[deps.POMDPs]]
+deps = ["Distributions", "Graphs", "NamedTupleTools", "POMDPLinter", "Pkg", "Random", "Statistics"]
+git-tree-sha1 = "9ab2df9294d0b23def1e5274a0ebf691adc8f782"
+uuid = "a93abf59-7444-517b-a68a-c42f96afdd7d"
+version = "0.9.5"
 
 [[deps.Packing]]
 deps = ["GeometryBasics"]

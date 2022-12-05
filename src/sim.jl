@@ -14,7 +14,19 @@ mutable struct Area <: AbstractAgent
     probability::Float64
 end
 
-function initialise(seed = 1234)
+@agent Ambulance OSMAgent begin
+    in_operation::Bool
+end
+
+mutable struct Ambulance <: AbstractAgent
+    id::Int
+    pos::Tuple{Int, Int, Float64}
+    in_operation::Bool
+end
+
+
+
+function initialise(seed = 1234, n_areas = 100, n_ambulance = 1)
     #Set space
     map_path = OSM.test_map()
     properties = Dict(:dt => 1/60)
@@ -25,19 +37,18 @@ function initialise(seed = 1234)
         rng = Random.MersenneTwister(seed)
     )
     #Develop initial states for each node
-    for id in 1:100
+    for id in 1:n_areas
         start = random_position(model) # At an intersection
         probability = 0.001#rand(1:2) # Random probability
         emergency = Area(id, start, false, probability)
         add_agent_pos!(emergency, model)
         OSM.plan_random_route!(emergency, model; limit = 50) # try 50 times to find a random route
     end
-    # We'll add patient zero at a specific (longitude, latitude)
-    start = OSM.nearest_road((9.93000, 51.5328328), model)
-    finish = OSM.nearest_node((9.945125635913511, 51.530876112711745), model)
-    probability = rand(model.rng) # Random speed from 2-7kmph
-    emergency = add_agent!(start, model, true, probability)
-    plan_route!(emergency, finish, model)
+    for _ in 1:n_ambulance
+        ambulance = Ambulance(1123, random_position(model), false)
+        add_agent_pos!(ambulance, model)
+    end
+    # We'll add an ambulance at a specific (longitude, latitude)
     # This function call creates & adds an agent, see `add_agent!`
     return model
 end
@@ -52,8 +63,9 @@ function agent_step!(agent, model)
     #end
     agent.emergency = rand(Bernoulli(agent.probability))
     if agent.emergency
-        # Agents will be infected if they get too close (within 10m) to a zombie.
+        # Agents will be activated because of an emergency
         map(i -> model[i].emergency = true, nearby_ids(agent, model, 0.01))
+        #map(i -> model[i].in_operation = true,)
     end
     return
 end
@@ -61,7 +73,8 @@ end
 using InteractiveDynamics
 using CairoMakie
 CairoMakie.activate!() # hide
-ac(agent) = agent.emergency ? :green : :black
+ac(agent) = agent.emergency ? :yellow : :black
+#ac(agent) = agent.in_operation ? :red : :black
 as(agent) = agent.emergency ? 10 : 8
 model = initialise()
 
