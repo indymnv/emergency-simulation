@@ -24,7 +24,7 @@ function initialise(seed = 1234, n_areas = 100)
     map_path = OSM.test_map()
     properties = Dict(:dt => 1/60)
     model = ABM(
-        Union{Area, Ambulance},
+        Area,
         OpenStreetMapSpace(map_path);
         properties = properties,
         rng = Random.MersenneTwister(seed)
@@ -42,7 +42,7 @@ function initialise(seed = 1234, n_areas = 100)
     start = OSM.nearest_road((9.9351811, 51.5328328), model)
     #finish = OSM.nearest_node((9.945125635913511, 51.530876112711745), model)
     speed = rand(model.rng) * 50.0 + 20.0 # Random speed from 20-70kmph
-    ambulance = add_agent!(start, model, false, probability, true, speed)
+    ambulance = add_agent!(start, model, false, 0.0, true, speed)
 
     # We'll add an ambulance at a specific (longitude, latitude)
     # This function call creates & adds an agent, see `add_agent!`
@@ -59,9 +59,11 @@ function agent_step!(agent, model)
     #end
     agent.emergency = rand(Bernoulli(agent.probability))
     if agent.emergency
-        # Agents will be activated because of an emergency
-        map(i -> model[i].emergency = true, nearby_ids(agent, model, 0.01))
+        #plan_route!( agent, model, )
+        # Agents will be controlled because of an emergency 
+        map(i -> model[i].emergency = false, nearby_ids(agent, model, 0.01))
         #map(i -> model[i].in_operation = true,)
+        
     end
     return
 end
@@ -69,8 +71,8 @@ end
 using InteractiveDynamics
 using CairoMakie
 CairoMakie.activate!() # hide
-#ac(agent) = Area.emergency ? :yellow : :black
-ac(agent) = agent.in_operation ? :red : :black
+ac(agent) = agent.is_ambulance ? :red : agent.emergency ? :yellow : :black 
+#ac(agent) = agent.emergency ? :yellow : :black
 as(agent) = agent.emergency ? 10 : 8
 model = initialise()
 
