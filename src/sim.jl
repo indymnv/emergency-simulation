@@ -5,6 +5,8 @@ using Distributions
 @agent Area OSMAgent begin
     emergency::Bool
     probability::Float64
+    is_ambulance::Bool
+    speed::Float64
 end
 
 mutable struct Area <: AbstractAgent
@@ -12,26 +14,17 @@ mutable struct Area <: AbstractAgent
     pos::Tuple{Int, Int, Float64}
     emergency::Bool
     probability::Float64
-end
-
-@agent Ambulance OSMAgent begin
-    in_operation::Bool
-end
-
-mutable struct Ambulance <: AbstractAgent
-    id::Int
-    pos::Tuple{Int, Int, Float64}
-    in_operation::Bool
+    is_ambulance::Bool
+    speed::Float64
 end
 
 
-
-function initialise(seed = 1234, n_areas = 100, n_ambulance = 1)
+function initialise(seed = 1234, n_areas = 100)
     #Set space
     map_path = OSM.test_map()
     properties = Dict(:dt => 1/60)
     model = ABM(
-        Area,
+        Union{Area, Ambulance},
         OpenStreetMapSpace(map_path);
         properties = properties,
         rng = Random.MersenneTwister(seed)
@@ -40,14 +33,17 @@ function initialise(seed = 1234, n_areas = 100, n_ambulance = 1)
     for id in 1:n_areas
         start = random_position(model) # At an intersection
         probability = 0.001#rand(1:2) # Random probability
-        emergency = Area(id, start, false, probability)
-        add_agent_pos!(emergency, model)
+        emergency = Area(id, start, false, probability, false, 0.0)
+        add_agent!(emergency, model)
         OSM.plan_random_route!(emergency, model; limit = 50) # try 50 times to find a random route
     end
-    for _ in 1:n_ambulance
-        ambulance = Ambulance(1123, random_position(model), false)
-        add_agent_pos!(ambulance, model)
-    end
+
+    # We'll add patient zero at a specific (longitude, latitude)
+    start = OSM.nearest_road((9.9351811, 51.5328328), model)
+    #finish = OSM.nearest_node((9.945125635913511, 51.530876112711745), model)
+    speed = rand(model.rng) * 50.0 + 20.0 # Random speed from 20-70kmph
+    ambulance = add_agent!(start, model, false, probability, true, speed)
+
     # We'll add an ambulance at a specific (longitude, latitude)
     # This function call creates & adds an agent, see `add_agent!`
     return model
@@ -73,8 +69,8 @@ end
 using InteractiveDynamics
 using CairoMakie
 CairoMakie.activate!() # hide
-ac(agent) = agent.emergency ? :yellow : :black
-#ac(agent) = agent.in_operation ? :red : :black
+#ac(agent) = Area.emergency ? :yellow : :black
+ac(agent) = agent.in_operation ? :red : :black
 as(agent) = agent.emergency ? 10 : 8
 model = initialise()
 
