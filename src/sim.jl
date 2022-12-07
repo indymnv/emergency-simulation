@@ -57,9 +57,13 @@ function agent_step!(agent, model)
         # Start on new route, moving the remaining distance
         #move_along_route!(agent, model, distance_left)
     #end
-    agent.emergency = rand(Bernoulli(agent.probability))
+    if agent.emergency == false
+        agent.emergency = rand(Bernoulli(agent.probability))
+    end
     if agent.emergency
-        #plan_route!( agent, model, )
+        plan_route!(model[101] ,
+                                agent.pos,
+                                model, return_trip=true )
         # Agents will be controlled because of an emergency 
         map(i -> model[i].emergency = false, nearby_ids(agent, model, 0.01))
         #map(i -> model[i].in_operation = true,)
@@ -77,5 +81,5 @@ as(agent) = agent.emergency ? 10 : 8
 model = initialise()
 
 abmvideo("emergency_system.mp4", model, agent_step!;
-title = "Emergency in a city", framerate = 15, frames = 300, as, ac)
+title = "Emergency in a city", framerate = 5, frames = 300, as, ac)
 
