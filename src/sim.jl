@@ -5,8 +5,6 @@ using Distributions
 @agent Area OSMAgent begin
     emergency::Bool
     probability::Float64
-    #is_ambulance::Bool
-    #speed::Float64
 end
 
 @agent Ambulance OSMAgent begin
@@ -40,25 +38,32 @@ function initialise(seed = 1234, n_areas = 100, n_ambulances =2)
     return model
 end
 
-function dispatch_ambulance(agent::Ambulance, position, model)
-    plan_route!(agent, position, model, return_trip = true)
+#function dispatch_ambulance(agent::Ambulance, position, model)
+#    plan_route!(agent, position, model, return_trip = true)
+#end
+
+function ambulance_agent(agent::Ambulance, model)
+    return agent
 end
 
-agent_step!(agent::Ambulance, model) = nothing
+function area_agent(agent::Area, model)
+    return agent 
+end
 
-function agent_step!(agent::Area, model)
+function agent_step!(agent, model)
     #If every area nothing happen then launch a random bernoully distribution otherwise keep 
     #the emergency activated
-    if agent.emergency == false
-        agent.emergency = rand(Bernoulli(agent.probability))
+    area = area_agent(agent, model)
+    if area.emergency == false
+        area.emergency = rand(Bernoulli(area.probability))
     end
     # if there is a emergency, move one ambulance to the destiny and comeback to the place
-    #if agent.emergency
+    if area.emergency
         #plan_route!(agent , agent.pos, model, return_trip = true )
         # Agents will be controlled because of an emergency 
-        #map(i -> model[i].emergency = false, nearby_ids(agent, model, 0.01))
+        map(i -> model[i].emergency = false, nearby_ids(area, model, 0.01))
         #map(i -> model[i].in_operation = true,)
-    #end
+    end
     return
 end
 
@@ -67,13 +72,8 @@ using CairoMakie
 CairoMakie.activate!() # hide
 ac(agent::Area) = agent.emergency ? :red : :black 
 ac(agent::Ambulance) = :blue  
-#as(agent::Area) = agent.emergency ? 10 : 8
-
-#ac(agent) = agent.type == :Area and ? :yellow : :black 
-#ac(Ambulance) = ambulances.speed > 0.0 ? :green : :black
 as(agent) =  10
 model = initialise()
 
 abmvideo("emergency_system.mp4", model, agent_step!; 
 title = "Emergency in a city", framerate = 5, frames = 300, as, ac)
-
