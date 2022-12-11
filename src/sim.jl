@@ -19,6 +19,7 @@ function initialise(seed = 1234, n_areas = 100, n_ambulances =2)
         Union{Area, Ambulance},
         OpenStreetMapSpace(map_path);
         properties = properties,
+        scheduler = Schedulers.randomly,
         rng = Random.MersenneTwister(seed)
     )
     #Develop initial states for each node
@@ -38,32 +39,37 @@ function initialise(seed = 1234, n_areas = 100, n_ambulances =2)
     return model
 end
 
-#function dispatch_ambulance(agent::Ambulance, position, model)
-#    plan_route!(agent, position, model, return_trip = true)
-#end
-
-function ambulance_agent(agent::Ambulance, model)
-    return agent
+function alarm_emergency(agent::Area, model)
+    if agent.emergency
+        #println("------------------------")
+        #plan_route!(agent, position, model, return_trip = true)
+        #emergencys = [x for x in agent.pos if x.emergency == true]
+        #map(i -> model[i].agent = true, nearby_ids(agent, model, 0.01))
+        #println(agent.pos)
+        return agent.pos
+    end
+    #println(list_pos)
+    return nothing
 end
 
-function area_agent(agent::Area, model)
-    return agent 
-end
+#alarm_emergency(agent::)
+agent_step!(agent::Ambulance, model) = OSM.plan_random_route!(agent, model)
 
-function agent_step!(agent, model)
+function agent_step!(agent::Area, model)
     #If every area nothing happen then launch a random bernoully distribution otherwise keep 
     #the emergency activated
-    area = area_agent(agent, model)
-    if area.emergency == false
-        area.emergency = rand(Bernoulli(area.probability))
+    #ambulance = ambulance_agent(agent::Ambulance, model)
+    if agent.emergency == false
+        agent.emergency = rand(Bernoulli(agent.probability))
     end
     # if there is a emergency, move one ambulance to the destiny and comeback to the place
-    if area.emergency
-        #plan_route!(agent , agent.pos, model, return_trip = true )
+    alarm_emergency(agent, model)
+    #if agent.emergency
+        #plan_route!(ambulance , area.pos, model, return_trip = true)
         # Agents will be controlled because of an emergency 
-        map(i -> model[i].emergency = false, nearby_ids(area, model, 0.01))
+    #    map(i -> model[i].emergency = false, nearby_ids(agent, model, 0.01))
         #map(i -> model[i].in_operation = true,)
-    end
+    #end
     return
 end
 
@@ -71,7 +77,7 @@ using InteractiveDynamics
 using CairoMakie
 CairoMakie.activate!() # hide
 ac(agent::Area) = agent.emergency ? :red : :black 
-ac(agent::Ambulance) = :blue  
+ac(agent::Ambulance) = :green  
 as(agent) =  10
 model = initialise()
 
