@@ -32,38 +32,40 @@ function initialise(seed = 1234, n_areas = 100, n_ambulances =2)
     #Allocate ambulance at random
     for id in 1:n_ambulances 
         start = random_position(model)
-        speed = rand(model.rng) + 60.0
+        speed = rand(model.rng) + 6.0
         ambulances = Ambulance(id+n_areas, start, speed)
         add_agent!(ambulances, model)
     end
     return model
 end
 
-function alarm_emergency(agent::Area, model)
-    if agent.emergency
-        #println("------------------------")
-        #plan_route!(agent, position, model, return_trip = true)
-        #emergencys = [x for x in agent.pos if x.emergency == true]
-        #map(i -> model[i].agent = true, nearby_ids(agent, model, 0.01))
-        #println(agent.pos)
-        return agent.pos
-    end
-    #println(list_pos)
-    return nothing
+function control_emergency!(area::Area, ambulance::Ambulance, model)
+    nothing
+    #If emergency is true and there is a ambulance near, then set to false
+end
+
+function alarm_emergency(pos, model)
+    near_ids = nearby_ids(pos, model, 2.00)
+    j = findfirst(id -> model[id] isa Area && model[id].emergency == true , near_ids)
+    isnothing(j) ? nothing : model[near_ids[j]]::Area
 end
 
 #alarm_emergency(agent::)
-agent_step!(agent::Ambulance, model) = OSM.plan_random_route!(agent, model)
+function agent_step!(ambulance::Ambulance, model)
+    position = alarm_emergency(ambulance.pos, model)
+    OSM.plan_route!(ambulance, position,  model, return_trip=true)
+    return
+end
 
-function agent_step!(agent::Area, model)
+function agent_step!(area::Area, model)
     #If every area nothing happen then launch a random bernoully distribution otherwise keep 
     #the emergency activated
     #ambulance = ambulance_agent(agent::Ambulance, model)
-    if agent.emergency == false
-        agent.emergency = rand(Bernoulli(agent.probability))
+    if area.emergency == false
+        area.emergency = rand(Bernoulli(area.probability))
     end
     # if there is a emergency, move one ambulance to the destiny and comeback to the place
-    alarm_emergency(agent, model)
+    alarm_emergency(area, model)
     #if agent.emergency
         #plan_route!(ambulance , area.pos, model, return_trip = true)
         # Agents will be controlled because of an emergency 
@@ -82,4 +84,4 @@ as(agent) =  10
 model = initialise()
 
 abmvideo("emergency_system.mp4", model, agent_step!; 
-title = "Emergency in a city", framerate = 5, frames = 300, as, ac)
+title = "Emergency in a city", framerate = 15, frames = 300, as, ac)
