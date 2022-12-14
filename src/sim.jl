@@ -40,7 +40,7 @@ function initialise(seed = 1234, n_areas = 100, n_ambulances =2)
 end
 
 function control_emergency!(area::Area, ambulance::Ambulance, model)
-    nothing
+    map(i -> area[i].emergency = false, nearby_ids(ambulance, model, 0.01))
     #If emergency is true and there is a ambulance near, then set to false
 end
 
